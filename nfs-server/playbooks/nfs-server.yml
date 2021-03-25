@@ -1,0 +1,50 @@
+---
+- hosts: nfs_server
+  become: yes
+  tasks:
+    - name: install nfs-utils
+      yum: name=nfs-utils state=latest
+
+    - name: Create a mountable directory if it does not exist
+      file:
+        path: /home/vagrant/k8sdata
+        state: directory
+        owner: vagrant
+        group: vagrant
+        mode: '0775'
+
+    - name: enable rpcbind nfs-server
+      service:
+        name: "{{ item }}"
+        enabled: yes
+      with_items:
+        - rpcbind
+        - nfs-server
+
+    - name: Copy exports file.
+      template:
+        src: /home/hazariel/projects/ansible/nfs-server/templates/exports.j2
+        dest: /etc/exports
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: NFS apply change configrue
+      shell: systemctl restart rpcbind && systemctl restart nfs-server && exportfs -a
+    
+    - name: start firewall
+      shell: systemctl start firewalld
+
+    - name : Configure firewall to allow nfs services
+      firewalld:
+        service: "{{ item }}"
+        permanent: yes
+        immediate: yes
+        state: enabled
+      loop:
+        - nfs
+        - nfs3
+        - rpc-bind
+        - mountd
+
+ 
