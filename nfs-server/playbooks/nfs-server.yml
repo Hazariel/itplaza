@@ -1,5 +1,3 @@
----
-  become: yes
   tasks:
     - name: install nfs-utils
       yum: name=nfs-utils state=latest
