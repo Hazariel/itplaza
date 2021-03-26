@@ -1,5 +1,4 @@
 ---
-- hosts: nfs_server
   become: yes
   tasks:
     - name: install nfs-utils
